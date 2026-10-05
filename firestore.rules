@@ -1,0 +1,174 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'google.com');
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        request.auth.token.email == 'rmdstetouan@gmail.com' ||
+        request.auth.token.email == 'amdstetouan@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 1. Organization Branding & Identity
+    function isValidOrganization(data) {
+      return data.name is string && data.name.size() <= 200 &&
+             data.acronym is string && data.acronym.size() <= 50 &&
+             data.slogan is string && data.slogan.size() <= 300 &&
+             data.secretaryGeneral is string && data.secretaryGeneral.size() <= 100;
+    }
+
+    match /organization/{orgId} {
+      allow get, list: if true;
+      allow create, update: if isValidId(orgId) && isValidOrganization(incoming());
+      allow delete: if false; // Organization identity cannot be deleted
+    }
+
+    // 2. Users Collection
+    function isValidUser(data) {
+      return data.email is string && data.email.size() <= 100 &&
+             data.displayName is string && data.displayName.size() <= 100 &&
+             data.role in ['SUPER_ADMIN', 'SECRETARY_GENERAL', 'BRANCH_MANAGER', 'EDITOR', 'CONTRIBUTOR', 'VIEWER'];
+    }
+
+    match /users/{userId} {
+      allow get, list: if true;
+      allow create, update: if isValidId(userId) && isValidUser(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 3. Activities Collection (Core Entity)
+    function isValidActivity(data) {
+      return data.title is string && data.title.size() <= 300 &&
+             data.status in ['Idea', 'Draft', 'Planned', 'In Preparation', 'Ready', 'Completed', 'Documentation', 'Complete', 'Archived'] &&
+             data.date is string && data.date.size() <= 50 &&
+             data.city is string && data.city.size() <= 100 &&
+             data.createdBy is string && data.createdBy.size() <= 100;
+    }
+
+    match /activities/{activityId} {
+      allow get, list: if true;
+      allow create, update: if isValidId(activityId) && isValidActivity(incoming());
+      allow delete: if isAdmin() || !isSignedIn();
+    }
+
+    // 4. Branches Collection
+    function isValidBranch(data) {
+      return data.name is string && data.name.size() <= 200 &&
+             data.city is string && data.city.size() <= 100 &&
+             data.managerName is string && data.managerName.size() <= 100 &&
+             data.status in ['Active', 'Inactive'];
+    }
+
+    match /branches/{branchId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(branchId) && isValidBranch(incoming());
+    }
+
+    // 5. Members Collection
+    function isValidMember(data) {
+      return data.name is string && data.name.size() <= 150 &&
+             data.status in ['Active', 'Inactive', 'Suggested_by_AI', 'Archived'];
+    }
+
+    match /members/{memberId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(memberId) && isValidMember(incoming());
+    }
+
+    // 6. Partners Collection
+    function isValidPartner(data) {
+      return data.name is string && data.name.size() <= 200 &&
+             data.partnershipType is string && data.partnershipType.size() <= 100;
+    }
+
+    match /partners/{partnerId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(partnerId) && isValidPartner(incoming());
+    }
+
+    // 7. Documents & Official Correspondence
+    function isValidDocument(data) {
+      return data.refNumber is string && data.refNumber.size() <= 100 &&
+             data.title is string && data.title.size() <= 300 &&
+             data.type in ['Correspondence', 'Report', 'Announcement', 'Invitation', 'Minutes', 'Statement'] &&
+             data.status in ['Draft', 'Pending_Approval', 'Approved', 'Sent', 'Archived'] &&
+             data.issuedDate is string && data.issuedDate.size() <= 50;
+    }
+
+    match /documents/{documentId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(documentId) && isValidDocument(incoming());
+    }
+
+    // 8. Certificates Collection
+    function isValidCertificate(data) {
+      return data.certificateNumber is string && data.certificateNumber.size() <= 100 &&
+             data.recipientName is string && data.recipientName.size() <= 150 &&
+             data.type in ['مشاركة', 'تقدير', 'تدريب', 'تكريم', 'تطوع'];
+    }
+
+    match /certificates/{certId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(certId) && isValidCertificate(incoming());
+    }
+
+    // 9. Institutional Memory Collection
+    function isValidMemoryDoc(data) {
+      return data.title is string && data.title.size() <= 300 &&
+             data.category in ['قانون أساسي', 'نظام داخلي', 'محضر جمع عام', 'مراسلة تاريخية', 'دليل مساطر'] &&
+             data.isOfficial is bool;
+    }
+
+    match /institutional_memory/{docId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(docId) && isValidMemoryDoc(incoming());
+    }
+
+    // 10. Audit Logs (Immutable append-only ledger)
+    function isValidAuditLog(data) {
+      return data.action is string && data.action.size() <= 100 &&
+             data.performedBy is string && data.performedBy.size() <= 100 &&
+             data.performedByEmail is string && data.performedByEmail.size() <= 100 &&
+             data.timestamp is string && data.timestamp.size() <= 50;
+    }
+
+    match /audit_logs/{logId} {
+      allow get, list: if true;
+      allow create: if isValidId(logId) && isValidAuditLog(incoming());
+      allow update, delete: if false; // Strict immutability: Cannot tamper with audit history
+    }
+
+    // Connection testing
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Default deny all others
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

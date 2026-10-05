@@ -1,0 +1,102 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Global Authentication & Role Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && (
+        request.auth.token.email_verified == true ||
+        request.auth.token.firebase.sign_in_provider == 'google.com'
+      );
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        request.auth.token.email == 'rmdstetouan@gmail.com' ||
+        request.auth.token.email == 'amdstetouan@gmail.com'
+      );
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isPdfOrDoc() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.*') ||
+             request.resource.contentType.matches('application/msword') ||
+             request.resource.contentType.matches('text/.*');
+    }
+
+    function isZip() {
+      return request.resource.contentType.matches('application/zip') ||
+             request.resource.contentType.matches('application/x-zip-compressed');
+    }
+
+    // 1. Branding Assets (/branding/*)
+    // Public read for official letterheads & certificates; Write restricted to Secretary General
+    match /branding/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+
+    // 2. Activity Assets (/activities/{activityId}/*)
+    // Posters, Programs, Invitations, Photos, and Activity Packs
+    match /activities/{activityId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isVerified() && (isImage() || isPdfOrDoc() || isZip()) && request.resource.size < 50 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+
+    // 3. Branches Assets (/branches/{branchId}/*)
+    // Branch office documentation and local activities
+    match /branches/{branchId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isVerified() && request.resource.size < 25 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+
+    // 4. Member Documents (/members/{memberId}/*)
+    // CVs, Identification, and Member photos (Protected: member or admin)
+    match /members/{memberId}/{allPaths=**} {
+      allow read: if isSignedIn() && (request.auth.uid == memberId || isAdmin());
+      allow write: if isSignedIn() && (request.auth.uid == memberId || isAdmin()) && request.resource.size < 15 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+
+    // 5. Official Documents & Correspondence (/documents/{documentId}/*)
+    match /documents/{documentId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isVerified() && isPdfOrDoc() && request.resource.size < 30 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+
+    // 6. Certificates (/certificates/{certificateId}/*)
+    // Public read enabled for official QR verification
+    match /certificates/{certificateId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isVerified() && (isPdfOrDoc() || isImage()) && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+
+    // 7. Institutional Memory (/institutional_memory/*)
+    // Founding bylaws, internal regulations, historical minutes
+    match /institutional_memory/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write, delete: if isAdmin() && request.resource.size < 50 * 1024 * 1024;
+    }
+
+    // 8. Annual and Literary Reports (/reports/{reportId}/*)
+    match /reports/{reportId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isVerified() && (isPdfOrDoc() || isZip()) && request.resource.size < 50 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+  }
+}

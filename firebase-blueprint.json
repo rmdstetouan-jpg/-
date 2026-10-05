@@ -1,0 +1,256 @@
+{
+  "entities": {
+    "organization": {
+      "title": "Organization",
+      "description": "بيانات الهوية الرسمية للرابطة المغربية للتنمية والتضامن",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 200 },
+        "acronym": { "type": "string", "maxLength": 50 },
+        "slogan": { "type": "string", "maxLength": 300 },
+        "secretaryGeneral": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 100 },
+        "website": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "address": { "type": "string", "maxLength": 200 },
+        "primaryColor": { "type": "string", "maxLength": 20 },
+        "secondaryColor": { "type": "string", "maxLength": 20 },
+        "accentColor": { "type": "string", "maxLength": 20 },
+        "darkColor": { "type": "string", "maxLength": 20 },
+        "logoUrl": { "type": "string", "maxLength": 500 },
+        "logoDarkUrl": { "type": "string", "maxLength": 500 },
+        "watermarkUrl": { "type": "string", "maxLength": 500 },
+        "headerTemplate": { "type": "string", "maxLength": 500 },
+        "footerTemplate": { "type": "string", "maxLength": 500 },
+        "updatedAt": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["name", "acronym", "slogan", "secretaryGeneral"]
+    },
+    "user": {
+      "title": "User Profile",
+      "description": "ملف المستخدم وصلاحياته في نظام مِداد",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "maxLength": 100 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "SECRETARY_GENERAL", "BRANCH_MANAGER", "EDITOR", "CONTRIBUTOR", "VIEWER"] },
+        "branchId": { "type": "string", "maxLength": 100 },
+        "avatarUrl": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["email", "displayName", "role"]
+    },
+    "activity": {
+      "title": "Activity",
+      "description": "النشاط المؤسساتي - القلب المركزي للنظام",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 300 },
+        "type": { "type": "string", "maxLength": 100 },
+        "slogan": { "type": "string", "maxLength": 300 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "objectives": { "type": "string", "maxLength": 2000 },
+        "date": { "type": "string", "maxLength": 50 },
+        "time": { "type": "string", "maxLength": 50 },
+        "location": { "type": "string", "maxLength": 200 },
+        "city": { "type": "string", "maxLength": 100 },
+        "organizer": { "type": "string", "maxLength": 200 },
+        "responsiblePerson": { "type": "string", "maxLength": 100 },
+        "status": {
+          "type": "string",
+          "enum": ["Idea", "Draft", "Planned", "In Preparation", "Ready", "Completed", "Documentation", "Complete", "Archived"]
+        },
+        "targetAudience": { "type": "string", "maxLength": 200 },
+        "expectedBeneficiaries": { "type": "number" },
+        "actualBeneficiaries": { "type": "number" },
+        "readinessScore": { "type": "number" },
+        "version": { "type": "number" },
+        "source": { "type": "string", "maxLength": 50 },
+        "branchId": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["title", "status", "date", "city", "createdBy"]
+    },
+    "branch": {
+      "title": "Branch",
+      "description": "فروع الرابطة المغربية للتنمية والتضامن",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 200 },
+        "city": { "type": "string", "maxLength": 100 },
+        "managerName": { "type": "string", "maxLength": 100 },
+        "managerEmail": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "address": { "type": "string", "maxLength": 300 },
+        "status": { "type": "string", "enum": ["Active", "Inactive"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "city", "managerName", "status"]
+    },
+    "member": {
+      "title": "Member",
+      "description": "سجل الأعضاء والمنتسبين للرابطة",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "city": { "type": "string", "maxLength": 100 },
+        "branchId": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["Active", "Inactive", "Suggested_by_AI", "Archived"] },
+        "source": { "type": "string", "maxLength": 50 },
+        "joinDate": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "status"]
+    },
+    "partner": {
+      "title": "Partner",
+      "description": "قاعدة بيانات الشركاء المؤسساتيين والجمعويين",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 200 },
+        "representative": { "type": "string", "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 100 },
+        "website": { "type": "string", "maxLength": 150 },
+        "city": { "type": "string", "maxLength": 100 },
+        "partnershipType": { "type": "string", "maxLength": 100 },
+        "logoUrl": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "partnershipType"]
+    },
+    "document": {
+      "title": "Document",
+      "description": "المراسلات والتقارير والوثائق الرسمية ذات الترقيم الموحد",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "refNumber": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 300 },
+        "type": { "type": "string", "enum": ["Correspondence", "Report", "Announcement", "Invitation", "Minutes", "Statement"] },
+        "activityId": { "type": "string", "maxLength": 100 },
+        "branchId": { "type": "string", "maxLength": 100 },
+        "recipient": { "type": "string", "maxLength": 200 },
+        "subject": { "type": "string", "maxLength": 300 },
+        "content": { "type": "string", "maxLength": 10000 },
+        "status": { "type": "string", "enum": ["Draft", "Pending_Approval", "Approved", "Sent", "Archived"] },
+        "fileUrl": { "type": "string", "maxLength": 500 },
+        "issuedDate": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "approvedBy": { "type": "string" }
+      },
+      "required": ["refNumber", "title", "type", "status", "issuedDate"]
+    },
+    "certificate": {
+      "title": "Certificate",
+      "description": "شهادات المشاركة والتقدير الرسمية",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "certificateNumber": { "type": "string", "maxLength": 100 },
+        "recipientName": { "type": "string", "maxLength": 150 },
+        "activityId": { "type": "string", "maxLength": 100 },
+        "activityTitle": { "type": "string", "maxLength": 300 },
+        "type": { "type": "string", "enum": ["مشاركة", "تقدير", "تدريب", "تكريم", "تطوع"] },
+        "issuedDate": { "type": "string", "maxLength": 50 },
+        "qrCodeData": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["certificateNumber", "recipientName", "type", "issuedDate"]
+    },
+    "institutional_memory": {
+      "title": "Institutional Memory",
+      "description": "وثائق الذاكرة المؤسسية المرجعية (القانون الأساسي، النظام الداخلي، المحاضر)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 300 },
+        "category": { "type": "string", "enum": ["قانون أساسي", "نظام داخلي", "محضر جمع عام", "مراسلة تاريخية", "دليل مساطر"] },
+        "year": { "type": "string", "maxLength": 10 },
+        "content": { "type": "string", "maxLength": 20000 },
+        "fileUrl": { "type": "string", "maxLength": 500 },
+        "isOfficial": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "category", "isOfficial"]
+    },
+    "audit_log": {
+      "title": "Audit Log",
+      "description": "سجل العمليات الحساسة وتتبع النشاط",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "action": { "type": "string", "maxLength": 100 },
+        "module": { "type": "string", "maxLength": 100 },
+        "recordId": { "type": "string", "maxLength": 100 },
+        "recordTitle": { "type": "string", "maxLength": 300 },
+        "performedBy": { "type": "string", "maxLength": 100 },
+        "performedByEmail": { "type": "string", "maxLength": 100 },
+        "timestamp": { "type": "string" },
+        "details": { "type": "string", "maxLength": 1000 }
+      },
+      "required": ["action", "performedBy", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/organization/{orgId}": {
+      "schema": "organization",
+      "description": "إعدادات الهوية الرسمية للرابطة"
+    },
+    "/users/{userId}": {
+      "schema": "user",
+      "description": "الملفات الشخصية للمستخدمين"
+    },
+    "/activities/{activityId}": {
+      "schema": "activity",
+      "description": "أنشطة الرابطة ومشاريعها"
+    },
+    "/branches/{branchId}": {
+      "schema": "branch",
+      "description": "فروع الرابطة بمختلف المدن المغربية"
+    },
+    "/members/{memberId}": {
+      "schema": "member",
+      "description": "سجل الأعضاء والمنتسبين الرسمي"
+    },
+    "/partners/{partnerId}": {
+      "schema": "partner",
+      "description": "قاعدة بيانات الشركاء المؤسساتيين"
+    },
+    "/documents/{documentId}": {
+      "schema": "document",
+      "description": "المراسلات والتقارير والوثائق ذات الترقيم المعتمد"
+    },
+    "/certificates/{certificateId}": {
+      "schema": "certificate",
+      "description": "شهادات الأنشطة والتقدير الصادرة"
+    },
+    "/institutional_memory/{docId}": {
+      "schema": "institutional_memory",
+      "description": "وثائق الذاكرة المؤسسية المعتمدة"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "audit_log",
+      "description": "سجلات التدقيق المؤسساتية غير القابلة للتعديل"
+    }
+  }
+}
